@@ -1,0 +1,29 @@
+#include "get_next_line.h"
+#include <stdio.h>
+#include <fcntl.h>
+
+int main(int argc, char **argv)
+{
+    int     fd;
+    char    *line;
+
+    if (argc != 2)
+        return (1);
+    fd = open(argv[1], O_RDONLY);
+    if (fd == -1)
+        return (1);
+    line = get_next_line(fd);
+    if (line)
+    {
+        printf("%s", line);
+        free(line);
+    }
+	line = get_next_line(fd);
+    if (line)
+    {
+        printf("%s", line);
+        free(line);
+    }
+    close(fd);
+    return (0);
+}
