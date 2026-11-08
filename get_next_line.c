@@ -1,6 +1,6 @@
 #include "get_next_line.h"
 
-static size_t	ft_strlen(const char *s)
+size_t	ft_strlen(const char *s)
 {
 	size_t	i;
 
@@ -10,7 +10,7 @@ static size_t	ft_strlen(const char *s)
 	return (i);
 }
 
-static char	*ft_strjoin(char const *s1, char const *s2)
+char	*ft_strjoin(char const *s1, char const *s2)
 {
 	char	*str;
 	size_t	len1;
@@ -38,7 +38,7 @@ static char	*ft_strjoin(char const *s1, char const *s2)
 	return (str);
 }
 
-static int	new_line(char *buffer)
+int	new_line(char *buffer)
 {
 	int	i;
 
@@ -54,53 +54,54 @@ static int	new_line(char *buffer)
 	return (-1);
 }
 
+char	*read_to_stash(int fd, char *stish)
+{
+	char	*buffer;
+	ssize_t	count;
+
+	buffer = malloc(BUFFER_SIZE + 1);
+	if (!buffer)
+	{
+		free(stish);
+		return (NULL);
+	}
+	count = 1;
+	while (new_line(stish) == -1 && count > 0)
+		count = read_and_join(fd, buffer, &stish);
+	free(buffer);
+	if (count < 0)
+	{
+		free(stish);
+		return (NULL);
+	}
+	return (stish);
+}
+
 char	*get_next_line(int fd)
 {
-	char		*buffer;
 	static char	*stish;
-	char		*tmp;
 	char		*line;
-	int			got_it;
-	int			count;
 
 	if (fd < 0 || BUFFER_SIZE <= 0)
 		return (NULL);
-	buffer = malloc(BUFFER_SIZE + 1);
-	if (!buffer)
-		return (NULL);
-	while (new_line(stish) == -1)
+	if (read(fd, NULL, 0) == -1)
 	{
-		tmp = stish;
-		count = read(fd, buffer, BUFFER_SIZE);
-		if (count == -1)
-		{
-			free(buffer);
-			free(stish);
-			stish = NULL;
-			return (NULL);
-		}
-		if (count == 0)
-		{
-			free(buffer);
-			break ;
-		}
-		buffer[count] = '\0';
-		stish = ft_strjoin(stish, buffer);
-		free(tmp);
-		if (stish == NULL)
-		{
-			free(buffer);
-			break ;
-		}
+    	free(stish);
+    	stish = NULL;
+    	return (NULL);
 	}
-	got_it = new_line(stish);
-	line = malloc(got_it + 2);
-	if (!line)
-		return (NULL);
-	ft_memcpy(line, stish, got_it + 1);
-	line[got_it + 1] = '\0';
-	ft_memmove(stish, stish + got_it + 1, ft_strlen(stish + got_it + 1) + 1);
-	if (count != 0)
-		free(buffer);
-	return (line);
+	stish = read_to_stash(fd, stish);
+	if (!stish || !(*stish))
+	{
+    	free(stish);
+    	stish = NULL;
+    	return (NULL);
+	}
+	if (new_line(stish) == -1)
+	{
+		line = stish;
+		stish = NULL;
+		return (line);
+	}
+	return (extract_line(&stish));
 }
