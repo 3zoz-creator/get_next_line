@@ -5,14 +5,24 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: abait-br <abait-br@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/11/06 21:38:43 by abait-br          #+#    #+#             */
-/*   Updated: 2026/11/07 17:13:00 by abait-br         ###   ########.fr       */
+/*   Created: 2026/11/12 20:53:34 by abait-br          #+#    #+#             */
+/*   Updated: 2026/11/12 20:53:35 by abait-br         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 
-ssize_t	read_and_join(int fd, char *buffer, char **stish)
+size_t	ft_strlen(const char *str)
+{
+	size_t	len;
+
+	len = 0;
+	while (str[len])
+		len++;
+	return (len);
+}
+
+ssize_t	read_and_join(int fd, char *buffer, char **scraps)
 {
 	ssize_t	count;
 	char	*tmp;
@@ -21,37 +31,35 @@ ssize_t	read_and_join(int fd, char *buffer, char **stish)
 	if (count <= 0)
 		return (count);
 	buffer[count] = '\0';
-	tmp = *stish;
-	*stish = ft_strjoin(*stish, buffer);
+	tmp = *scraps;
+	*scraps = ft_strjoin(*scraps, buffer);
 	free(tmp);
-	if (!*stish)
+	if (!*scraps)
 		return (-1);
 	return (count);
 }
 
-char *extract_line(char **stish)
+char	*read_to_scraps(int fd, char **scraps)
 {
-	char	*line;
-	int		got_it;
+	char	*buffer;
+	ssize_t	count;
 
-	got_it = new_line(*stish);
-	line = malloc(got_it + 2);
-	if (!line)
+	buffer = malloc((size_t)BUFFER_SIZE + 1);
+	if (!buffer)
 	{
-		free(*stish);
-		*stish = NULL;
+		free(*scraps);
 		return (NULL);
 	}
-	ft_memcpy(line, *stish, got_it + 1);
-	line[got_it + 1] = '\0';
-	ft_memmove(*stish, (*stish) + got_it + 1,
-		ft_strlen((*stish) + got_it + 1) + 1);
-	if (!**stish)
+	count = 1;
+	while (new_line(*scraps) == -1 && count > 0)
+		count = read_and_join(fd, buffer, scraps);
+	free(buffer);
+	if (count < 0)
 	{
-		free(*stish);
-		*stish = NULL;
+		free(*scraps);
+		return (NULL);
 	}
-	return (line);
+	return (*scraps);
 }
 
 void	*ft_memcpy(void *dest, const void *src, size_t n)

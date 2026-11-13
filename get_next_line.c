@@ -1,14 +1,16 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   get_next_line.c                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: abait-br <abait-br@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/11/12 20:53:38 by abait-br          #+#    #+#             */
+/*   Updated: 2026/11/12 20:57:07 by abait-br         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "get_next_line.h"
-
-size_t	ft_strlen(const char *s)
-{
-	size_t	i;
-
-	i = 0;
-	while (s[i])
-		i++;
-	return (i);
-}
 
 char	*ft_strjoin(char const *s1, char const *s2)
 {
@@ -38,70 +40,71 @@ char	*ft_strjoin(char const *s1, char const *s2)
 	return (str);
 }
 
-int	new_line(char *buffer)
+ssize_t	new_line(char *scraps)
 {
-	int	i;
+	ssize_t	got_it;
 
-	i = 0;
-	if (!buffer)
+	if (!scraps)
 		return (-1);
-	while (buffer[i])
+	got_it = 0;
+	while (scraps[got_it])
 	{
-		if (buffer[i] == '\n')
-			return (i);
-		i++;
+		if (scraps[got_it] == '\n')
+			return (got_it);
+		got_it++;
 	}
 	return (-1);
 }
 
-char	*read_to_stash(int fd, char *stish)
+char	*extract_line(char **scraps)
 {
-	char	*buffer;
-	ssize_t	count;
+	char	*line;
+	ssize_t	got_it;
 
-	buffer = malloc(BUFFER_SIZE + 1);
-	if (!buffer)
+	got_it = new_line(*scraps) + 1;
+	line = malloc(got_it + 1);
+	if (!line)
 	{
-		free(stish);
+		free(*scraps);
+		*scraps = NULL;
 		return (NULL);
 	}
-	count = 1;
-	while (new_line(stish) == -1 && count > 0)
-		count = read_and_join(fd, buffer, &stish);
-	free(buffer);
-	if (count < 0)
+	ft_memcpy(line, *scraps, got_it);
+	line[got_it] = '\0';
+	ft_memmove(*scraps, *scraps + got_it, ft_strlen(*scraps + got_it) + 1);
+	if (!**scraps)
 	{
-		free(stish);
-		return (NULL);
+		free(*scraps);
+		*scraps = NULL;
 	}
-	return (stish);
+	return (line);
 }
 
 char	*get_next_line(int fd)
 {
-	static char	*stish;
+	static char	*scraps;
 	char		*line;
 
 	if (fd < 0 || BUFFER_SIZE <= 0)
 		return (NULL);
 	if (read(fd, NULL, 0) == -1)
 	{
-    	free(stish);
-    	stish = NULL;
-    	return (NULL);
+		free(scraps);
+		scraps = NULL;
+		return (NULL);
 	}
-	stish = read_to_stash(fd, stish);
-	if (!stish || !(*stish))
+	scraps = read_to_scraps(fd, &scraps);
+	if (!scraps || !(*scraps))
 	{
-    	free(stish);
-    	stish = NULL;
-    	return (NULL);
+		free(scraps);
+		scraps = NULL;
+		return (NULL);
 	}
-	if (new_line(stish) == -1)
+	if (new_line(scraps) == -1)
 	{
-		line = stish;
-		stish = NULL;
+		line = scraps;
+		scraps = NULL;
 		return (line);
 	}
-	return (extract_line(&stish));
+	return (extract_line(&scraps));
 }
