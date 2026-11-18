@@ -6,7 +6,7 @@
 /*   By: abait-br <abait-br@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/12 20:53:38 by abait-br          #+#    #+#             */
-/*   Updated: 2026/11/13 17:42:21 by abait-br         ###   ########.fr       */
+/*   Updated: 2026/11/18 17:21:18 by abait-br         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,14 +85,8 @@ char	*get_next_line(int fd)
 	static char	*scraps[FD_LIMIT];
 	char		*line;
 
-	if (fd < 0 || fd > FD_LIMIT|| BUFFER_SIZE <= 0)
+	if (fd < 0 || fd >= FD_LIMIT || BUFFER_SIZE <= 0)
 		return (NULL);
-	if (read(fd, NULL, 0) == -1)
-	{
-		free(scraps[fd]);
-		scraps[fd] = NULL;
-		return (NULL);
-	}
 	scraps[fd] = read_to_scraps(fd, &scraps[fd]);
 	if (!scraps[fd] || !(*scraps[fd]))
 	{

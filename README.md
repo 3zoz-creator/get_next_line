@@ -23,7 +23,7 @@ The function works on regular files as well as on standard input.
 
 The implementation uses a `static char *scraps` (the "scraps") that holds the data that has been read from the file descriptor but not yet returned to the caller.
 
-1. **Validate** the input: return `NULL` if `fd < 0`, if `BUFFER_SIZE <= 0`, or if `read(fd, NULL, 0)` fails. In the last case the scraps is freed, so nothing leaks.
+1. **Validate** the input: return `NULL` if `fd < 0`, or if `BUFFER_SIZE <= 0`.
 2. **Fill the scraps** (`read_to_scraps`): read `BUFFER_SIZE` bytes at a time into a temporary buffer and append them to the scraps with `ft_strjoin`. Stop as soon as the scraps contains a `\n` or `read` returns `0` (EOF).
 3. **Extract the line** (`extract_line`): allocate a new string, copy everything up to and including the first `\n`, then shift the remaining data to the start of the scraps with `ft_memmove`. If nothing remains, the scraps is freed and set to `NULL`.
 4. **EOF without a trailing newline**: the whole scraps is returned as the last line, and the scraps is set to `NULL`.
@@ -101,4 +101,4 @@ The mandatory part handles one file descriptor at a time with a single static sc
 
 AI was used for the following tasks:
 
-AI was used as a learning aid to understand how static variable's work . All the code was written and tested by me.
+AI was used as a learning aid to understand how static variable's work. All the code was written and tested by me.
